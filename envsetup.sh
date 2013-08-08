@@ -462,11 +462,6 @@ function add_lunch_combo()
     LUNCH_MENU_CHOICES=(${LUNCH_MENU_CHOICES[@]} $new_combo)
 }
 
-# add the default one here
-add_lunch_combo aosp_arm-eng
-add_lunch_combo aosp_x86-eng
-add_lunch_combo aosp_mips-eng
-add_lunch_combo vbox_x86-eng
 
 function print_lunch_menu()
 {
@@ -510,36 +505,6 @@ function brunch()
     return $?
 }
 
-function breakfast()
-{
-    target=$1
-    CM_DEVICES_ONLY="true"
-    unset LUNCH_MENU_CHOICES
-    add_lunch_combo full-eng
-    for f in `/bin/ls vendor/cm/vendorsetup.sh 2> /dev/null`
-        do
-            echo "including $f"
-            . $f
-        done
-    unset f
-
-    if [ $# -eq 0 ]; then
-        # No arguments, so let's have the full menu
-        lunch
-    else
-        echo "z$target" | grep -q "-"
-        if [ $? -eq 0 ]; then
-            # A buildtype was specified, assume a full device name
-            lunch $target
-        else
-            # This is probably just the CM model name
-            lunch cm_$target-userdebug
-        fi
-    fi
-    return $?
-}
-
-alias bib=breakfast
 
 function lunch()
 {
