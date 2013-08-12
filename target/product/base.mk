@@ -103,7 +103,12 @@ PRODUCT_PACKAGES += \
     vdc \
     vold \
     webview \
-    wm
-
+    wm \
+    e2fsck \
+    mke2fs \
+    tune2fs \
+    mount.exfat \
+    fsck.exfat \
+    mkfs.exfat
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/embedded.mk)
