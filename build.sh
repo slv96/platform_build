@@ -11,7 +11,7 @@
 # ---------------------------------------------------------
 # >>> AOSP S4
 # >>> Copyright 2013 broodplank.net
-# >>> REV1
+# >>> REV2
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
@@ -51,7 +51,7 @@ fi
 
 export USEROLD=`whoami`;
 export ULENGTH=`expr length ${USEROLD}`
-if [ "${ULENGTH}"=>"9" ]; then
+if [[ ${ULENGTH} -gt 9 ]]; then
 	clear
 	echo
 	echo
@@ -71,12 +71,14 @@ if [ "${ULENGTH}"=>"9" ]; then
 		read username
 		export USER=${username}
 		echo
-		echo "Using custom username instead of default username"
+		echo "Replacing values in build.prop after building"
 		echo
 	else
 		echo "Taking pictures with camera won't work, you're warned!"
 		echo
 	fi;
+else
+	#derp
 fi;
 
 
@@ -113,7 +115,7 @@ make -j${JOBS} ${MAKEPARAM}
 
 
 if [[ "$MAKEOTAPACKAGE" == "1" ]]; then
-	make otapackage -j ${JOBS}
+	make otapackage -j ${JOBS} ${MAKEPARAM}
 else 
 	echo "Skipping otapackage"
 fi;
