@@ -66,16 +66,17 @@ if [[ ${ULENGTH} -gt 9 ]]; then
 	echo "Do you want to pick a new username right now that's below 9 chars? ( y / n )"
 	read choice
 	echo
-	if [ ${choice} == "y" ]; then
+	if [[ ${choice} == "n" ]]; then
+		echo "Taking pictures with camera won't work, you're warned!"
+		echo
+		echo "Continuing..."
+	else
 		echo "New username:"
 		read username
 		export USER=${username}
 		echo
 		echo "Replacing values in build.prop after building"
-		echo
-	else
-		echo "Taking pictures with camera won't work, you're warned!"
-		echo
+		echo	
 	fi;
 fi;
 
