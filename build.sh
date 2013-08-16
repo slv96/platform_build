@@ -30,8 +30,54 @@
 # >>> Main Configuration (intended for option 6, All-In-One) 
 #
   JOBS=5                 # CPU Cores + 1 (also hyperthreading)
-  MAKEOTAPACKAGE=1       # Gief ZIP
+  MAKEOTAPACKAGE=1       # Make installable zip from output
 # ---------------------------------------------------------
+
+
+if [[ "${CHECKUPDATES}" == "1" ]]; then
+
+	clear
+	echo "----------------------------------------"
+	echo "- Syncing repositories...              -"
+	echo "----------------------------------------"
+	repo sync
+	clear
+else
+	echo
+	echo "Skipping repo sync"
+	clear
+fi
+
+
+export USEROLD=`whoami`;
+export ULENGTH=`expr length ${USEROLD}`
+if [ "${ULENGTH}"=>"9" ]; then
+	clear
+	echo
+	echo
+	echo "----------------------------------------"
+	echo "-         AOSP 4.3 FOR I9505           -"
+	echo "----------------------------------------"
+	echo
+	echo "Your username seems to exceed the max of 9 characters (${ULENGTH} chars)"
+        echo "Due to a temp issue the max amount of characters is limited"
+        echo "If the limit is exceeded the camera refuses to take pictures"
+	echo 
+	echo "Do you want to pick a new username right now that's below 9 chars? ( y / n )"
+	read choice
+	echo
+	if [ ${choice} == "y" ]; then
+		echo "New username:"
+		read username
+		export USER=${username}
+		echo
+		echo "Replacing values in build.prop after building"
+		echo
+	else
+		echo "Taking pictures with camera won't work, you're warned!"
+		echo
+	fi;
+fi;
 
 
 . build/envsetup.sh
@@ -53,19 +99,6 @@ busybox sleep 2
 clear
 
 
-if [[ "$CHECKUPDATES"=="1" ]]; then
-
-	clear
-	echo "----------------------------------------"
-	echo "- Syncing repositories...              -"
-	echo "----------------------------------------"
-	repo sync
-	clear
-else
-	echo "Skipping repo derp"
-	clear
-fi
-
 echo " "	
 echo "----------------------------------------"
 echo "-        Compiling AOSP 4.3            -"
@@ -79,10 +112,9 @@ make -j${JOBS} ${MAKEPARAM}
 
 
 
-
 if [[ "$MAKEOTAPACKAGE" == "1" ]]; then
 	make otapackage -j ${JOBS}
 else 
-	echo "Skipping derppackage"
+	echo "Skipping otapackage"
 fi;
 
