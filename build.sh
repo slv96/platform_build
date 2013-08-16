@@ -77,8 +77,6 @@ if [[ ${ULENGTH} -gt 9 ]]; then
 		echo "Taking pictures with camera won't work, you're warned!"
 		echo
 	fi;
-else
-	#derp
 fi;
 
 
