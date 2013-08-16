@@ -71,7 +71,7 @@ if [ "${ULENGTH}"=>"9" ]; then
 		read username
 		export USER=${username}
 		echo
-		echo "Replacing values in build.prop after building"
+		echo "Using custom username instead of default username"
 		echo
 	else
 		echo "Taking pictures with camera won't work, you're warned!"
