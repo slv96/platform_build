@@ -13,6 +13,7 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - jgrep:   Greps on all local Java files.
 - resgrep: Greps on all local res/*.xml files.
 - godir:   Go to the directory containing a file.
+- qc:      Quick rm -Rf of chosen intermediate files
 
 Look at the source to view more functions. The complete list is:
 EOF
@@ -575,6 +576,15 @@ function tapas()
 
     set_stuff_for_environment
     printconfig
+}
+
+function qc()
+{
+    rm -Rf 'out/target/common/obj/JAVA_LIBRARIES/'${1}'_intermediates';
+    rm -Rf 'out/target/common/obj/APPS/'${1}'_intermediates';
+    rm -Rf 'out/target/jfltexx/obj/JAVA_LIBRARIES/'${1}'_intermediates';
+    rm -Rf 'out/target/jfltexx/obj/APPS/'${1}'_intermediates';
+    echo "QuickCleaner Done!"
 }
 
 function gettop
