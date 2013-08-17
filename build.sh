@@ -75,12 +75,11 @@ if [[ ${ULENGTH} -gt 9 ]]; then
 		read username
 		export USER=${username}
 		echo
-		echo "Replacing values in build.prop after building"
+		echo "Replacing current username ${USEROLD} with new username ${choice}"
 		echo	
 	fi;
 fi;
 
-export TEST=`rm -Rf 'out/target/common/obj/JAVA_LIBRARIES/'${1}'_intermediates'`;
 
 
 . build/envsetup.sh
@@ -102,15 +101,26 @@ busybox sleep 2
 clear
 
 
-echo " "	
+echo "Linking kernel source to KERNEL_OBJ if needed..."
+if [ -d out/target/product/jfltexx/obj/KERNEL_OBJ ]; then
+   echo "Link already exists, skipping"
+else
+   mkdir -p out/target/product/jfltexx/obj/KERNEL_OBJ
+   cd out/target/product/jfltexx/obj 
+   echo "Making link to KERNEL_OBJ"
+   ln -s ${HOMEDIR}/kernel/samsung/jf KERNEL_OBJ
+fi
+
+
+echo	
 echo "----------------------------------------"
 echo "-        Compiling AOSP 4.3            -"
 echo "-  Number of simultaneous jobs: ${JOBS}      -"
 echo "----------------------------------------"
-echo " "
+echo
 busybox sleep 1
 echo "Building!"
-echo " "
+echo
 make -j${JOBS} ${MAKEPARAM}
 
 
