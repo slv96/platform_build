@@ -1070,26 +1070,34 @@ endif
 # -----------------------------------------------------------------
 # host tools needed to build dist and OTA packages
 
-DISTTOOLS :=  $(HOST_OUT_EXECUTABLES)/minigzip \
-	  $(HOST_OUT_EXECUTABLES)/mkbootfs \
-	  $(HOST_OUT_EXECUTABLES)/mkbootimg \
-	  $(HOST_OUT_EXECUTABLES)/fs_config \
-	  $(HOST_OUT_EXECUTABLES)/mkyaffs2image \
-	  $(HOST_OUT_EXECUTABLES)/zipalign \
-	  $(HOST_OUT_EXECUTABLES)/bsdiff \
-	  $(HOST_OUT_EXECUTABLES)/imgdiff \
-	  $(HOST_OUT_JAVA_LIBRARIES)/dumpkey.jar \
-	  $(HOST_OUT_JAVA_LIBRARIES)/signapk.jar \
-	  $(HOST_OUT_EXECUTABLES)/mkuserimg.sh \
-	  $(HOST_OUT_EXECUTABLES)/make_ext4fs \
-	  $(HOST_OUT_EXECUTABLES)/simg2img \
-	  $(HOST_OUT_EXECUTABLES)/e2fsck
+DISTTOOLS := $(HOST_OUT_EXECUTABLES)/minigzip \
+	$(HOST_OUT_EXECUTABLES)/adb \
+	$(HOST_OUT_EXECUTABLES)/mkbootfs \
+	$(HOST_OUT_EXECUTABLES)/mkbootimg \
+	$(HOST_OUT_EXECUTABLES)/unpackbootimg \
+	$(HOST_OUT_EXECUTABLES)/fs_config \
+	$(HOST_OUT_EXECUTABLES)/mkyaffs2image \
+	$(HOST_OUT_EXECUTABLES)/zipalign \
+	$(HOST_OUT_EXECUTABLES)/bsdiff \
+	$(HOST_OUT_EXECUTABLES)/imgdiff \
+	$(HOST_OUT_JAVA_LIBRARIES)/dumpkey.jar \
+	$(HOST_OUT_JAVA_LIBRARIES)/signapk.jar \
+	$(HOST_OUT_EXECUTABLES)/mkuserimg.sh \
+	$(HOST_OUT_EXECUTABLES)/make_ext4fs \
+	$(HOST_OUT_EXECUTABLES)/simg2img \
+	$(HOST_OUT_EXECUTABLES)/e2fsck
 
 OTATOOLS := $(DISTTOOLS) \
-	  $(HOST_OUT_EXECUTABLES)/aapt
+$(HOST_OUT_EXECUTABLES)/aapt
 
 .PHONY: otatools
 otatools: $(OTATOOLS)
+
+
+UNPACKBOOTIMG := $(HOST_OUT_EXECUTABLES)/unpackbootimg$(HOST_EXECUTABLE_SUFFIX)
+
+.PHONY: unpackbootimg
+unpackbootimg: $(UNPACKBOOTIMG)
 
 # -----------------------------------------------------------------
 # A zip of the directories that map to the target filesystem.
