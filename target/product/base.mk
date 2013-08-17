@@ -34,7 +34,6 @@ PRODUCT_PACKAGES += \
     ime \
     javax.obex \
     libSR_AudioIn \
-    libanalogradiobroadcasting \
     libandroid \
     libandroid_runtime \
     libandroid_servers \
