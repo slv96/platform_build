@@ -115,9 +115,11 @@ endif
 ## Add FDO flags if FDO is turned on and supported
 ####################################################
 ifeq ($(strip $(LOCAL_NO_FDO_SUPPORT)),)
-  LOCAL_CFLAGS += $(TARGET_FDO_CFLAGS)
-  LOCAL_CPPFLAGS += $(TARGET_FDO_CFLAGS)
-  LOCAL_LDFLAGS += $(TARGET_FDO_CFLAGS)
+  ifeq ($(strip $(LOCAL_IS_HOST_MODULE)),)
+    LOCAL_CFLAGS += $(TARGET_FDO_CFLAGS)
+    LOCAL_CPPFLAGS += $(TARGET_FDO_CFLAGS)
+    LOCAL_LDFLAGS += $(TARGET_FDO_CFLAGS)
+  endif
 endif
 
 ####################################################
@@ -577,7 +579,7 @@ import_includes_deps := $(strip \
     $(foreach l, $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES), \
       $(call intermediates-dir-for,STATIC_LIBRARIES,$(l),$(LOCAL_IS_HOST_MODULE))/export_includes))
 $(import_includes) : $(import_includes_deps)
-	@echo -e ${CL_CYN}Import includes file:${CL_RST} $@
+	@echo Import includes file: $@
 	$(hide) mkdir -p $(dir $@) && rm -f $@
 ifdef import_includes_deps
 	$(hide) for f in $^; do \
@@ -606,11 +608,6 @@ all_objects := \
     $(proto_generated_objects) \
     $(addprefix $(TOPDIR)$(LOCAL_PATH)/,$(LOCAL_PREBUILT_OBJ_FILES)) \
     $(gen_o_objects)
-
-## Allow a device's own headers to take precedence over global ones
-ifneq ($(TARGET_SPECIFIC_HEADER_PATH),)
-LOCAL_C_INCLUDES := $(TOPDIR)$(TARGET_SPECIFIC_HEADER_PATH) $(LOCAL_C_INCLUDES)
-endif
 
 LOCAL_C_INCLUDES += $(TOPDIR)$(LOCAL_PATH) $(intermediates)
 
@@ -753,7 +750,7 @@ $(LOCAL_INSTALLED_MODULE): | $(installed_static_library_notice_file_targets)
 export_includes := $(intermediates)/export_includes
 $(export_includes): PRIVATE_EXPORT_C_INCLUDE_DIRS := $(LOCAL_EXPORT_C_INCLUDE_DIRS)
 $(export_includes) : $(LOCAL_MODULE_MAKEFILE)
-	@echo -e ${CL_CYN}Export includes file:${CL_RST} $< -- $@
+	@echo Export includes file: $< -- $@
 	$(hide) mkdir -p $(dir $@) && rm -f $@
 ifdef LOCAL_EXPORT_C_INCLUDE_DIRS
 	$(hide) for d in $(PRIVATE_EXPORT_C_INCLUDE_DIRS); do \
