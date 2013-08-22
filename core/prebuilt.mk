@@ -89,7 +89,7 @@ $(my_prefix)DEPENDENCIES_ON_SHARED_LIBRARIES += $(LOCAL_MODULE):$(LOCAL_INSTALLE
 # since we use -rpath-link which points to the built module's path.
 built_shared_libraries := \
     $(addprefix $($(my_prefix)OUT_INTERMEDIATE_LIBRARIES)/, \
-    $(addsuffix $($(my_prefix)SHLIB_SUFFIX), \
+    $(addsuffix $(so_suffix), \
         $(LOCAL_SHARED_LIBRARIES)))
 $(LOCAL_BUILT_MODULE) : $(built_shared_libraries)
 endif
@@ -187,5 +187,3 @@ $(common_javalib_jar) : $(common_classes_jar) | $(ACP)
 # make sure the classes.jar and javalib.jar are built before $(LOCAL_BUILT_MODULE)
 $(built_module) : $(common_javalib_jar)
 endif # TARGET JAVA_LIBRARIES
-
-$(built_module) : $(LOCAL_ADDITIONAL_DEPENDENCIES)

@@ -19,10 +19,6 @@
 # devices (including non-phones and non-tablets), modify
 # core_minimal.mk instead.
 
-PRODUCT_PROPERTY_OVERRIDES := \
-    ro.config.notification_sound=OnTheHunt.ogg \
-    ro.config.alarm_alert=Alarm_Classic.ogg
-
 PRODUCT_PACKAGES += \
     BasicDreams \
     Browser \
@@ -44,6 +40,7 @@ PRODUCT_PACKAGES += \
     libbcc \
     libfilterpack_imageproc \
     libgabi++ \
+    libanalogradiobroadcasting \
     libkeystore \
     libmdnssd \
     libnfc_ndef \
@@ -72,7 +69,6 @@ PRODUCT_PACKAGES += \
     libwebrtc_audio_preprocessing \
     mdnsd \
     mms-common \
-    okhttp \
     requestsync \
     telephony-common \
     voip-common
@@ -82,9 +78,7 @@ ifeq ($(WITH_HOST_DALVIK),true)
     PRODUCT_PACKAGES += \
         apache-xml-hostdex \
         bouncycastle-hostdex \
-        conscrypt-hostdex \
         core-hostdex \
-        okhttp-hostdex \
         libcrypto \
         libexpat \
         libicui18n \

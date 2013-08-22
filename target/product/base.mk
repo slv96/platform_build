@@ -87,7 +87,6 @@ PRODUCT_PACKAGES += \
     netcfg \
     netd \
     ping \
-    ping6 \
     platform.xml \
     pppd \
     pm \
@@ -111,7 +110,5 @@ PRODUCT_PACKAGES += \
     mount.exfat \
     fsck.exfat \
     mkfs.exfat
-
-
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/embedded.mk)

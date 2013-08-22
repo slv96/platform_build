@@ -81,7 +81,6 @@ if [[ ${ULENGTH} -gt 9 ]]; then
 fi;
 
 
-
 . build/envsetup.sh
 clear
 echo
@@ -101,15 +100,6 @@ busybox sleep 2
 clear
 
 
-echo "Linking kernel source to KERNEL_OBJ if needed..."
-if [ -d out/target/product/jfltexx/obj/KERNEL_OBJ ]; then
-   echo "Link already exists, skipping"
-else
-   mkdir -p out/target/product/jfltexx/obj/KERNEL_OBJ
-   cd out/target/product/jfltexx/obj 
-   echo "Making link to KERNEL_OBJ"
-   ln -s ${HOMEDIR}/kernel/samsung/jf KERNEL_OBJ
-fi
 
 
 echo	
@@ -130,4 +120,5 @@ if [[ "$MAKEOTAPACKAGE" == "1" ]]; then
 else 
 	echo "Skipping otapackage"
 fi;
+
 
