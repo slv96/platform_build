@@ -89,8 +89,6 @@ PRODUCT_COPY_FILES := \
 	frameworks/av/media/libeffects/data/audio_effects.conf:system/etc/audio_effects.conf \
 	hardware/libhardware_legacy/audio/audio_policy.conf:system/etc/audio_policy.conf
 
-include $(SRC_TARGET_DIR)/product/emulator.mk
-
 $(call inherit-product-if-exists, frameworks/base/data/fonts/fonts.mk)
 $(call inherit-product-if-exists, frameworks/base/data/keyboards/keyboards.mk)
 $(call inherit-product-if-exists, frameworks/webview/chromium/chromium.mk)

@@ -478,17 +478,10 @@ function print_lunch_menu()
 {
     local uname=$(uname)
     echo
-    echo "You're building on" $uname
-    if [ "$(uname)" = "Darwin" ] ; then
-       echo "  (ohai, koush!)"
-    fi
+    echo ">>> AOSP for Samsung Galaxy S4"
+    echo ">>> by broodplank1337"
     echo
-    if [ "z${CM_DEVICES_ONLY}" != "z" ]; then
-       echo "Breakfast menu... pick a combo:"
-    else
-       echo "Lunch menu... pick a combo:"
-    fi
-
+    echo "Choose a S4 variant:"
     local i=1
     local choice
     for choice in ${LUNCH_MENU_CHOICES[@]}
@@ -496,11 +489,6 @@ function print_lunch_menu()
         echo " $i. $choice "
         i=$(($i+1))
     done | column
-
-    if [ "z${CM_DEVICES_ONLY}" != "z" ]; then
-       echo "... and don't forget the bacon!"
-    fi
-
     echo
 }
 
@@ -525,7 +513,7 @@ function lunch()
         answer=$1
     else
         print_lunch_menu
-        echo -n "Which would you like? [aosp_arm-eng] "
+        echo -n "Which would you like? [full_jfltexx-userdebug] "
         read answer
     fi
 
@@ -533,7 +521,7 @@ function lunch()
 
     if [ -z "$answer" ]
     then
-        selection=aosp_arm-eng
+        selection=full_jfltexx-userdebug
     elif (echo -n $answer | grep -q -e "^[0-9][0-9]*$")
     then
         if [ $answer -le ${#LUNCH_MENU_CHOICES[@]} ]
@@ -561,11 +549,12 @@ function lunch()
         # if we can't find a product, try to grab it off the CM github
         T=$(gettop)
         pushd $T > /dev/null
-        build/tools/roomservice.py $product
+        #build/tools/roomservice.py $product
         popd > /dev/null
         check_product $product
     else
-        build/tools/roomservice.py $product true
+        echo
+        #build/tools/roomservice.py $product true
     fi
     if [ $? -ne 0 ]
     then
