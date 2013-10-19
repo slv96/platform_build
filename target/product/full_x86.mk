@@ -19,13 +19,26 @@
 # build quite specifically for the emulator, and might not be
 # entirely appropriate to inherit from for on-device configurations.
 
+# If running on an emulator or some other device that has a LAN connection
+# that isn't a wifi connection. This will instruct init.rc to enable the
+# network connection so that you can use it with ADB
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base_telephony.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/board/generic/device.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/board/generic_x86/device.mk)
 
 include $(SRC_TARGET_DIR)/product/emulator.mk
 
+ifdef NET_ETH0_STARTONBOOT
+  PRODUCT_PROPERTY_OVERRIDES += net.eth0.startonboot=1
+endif
+
+# Ensure we package the BIOS files too.
+PRODUCT_PACKAGES += \
+	bios.bin \
+	vgabios-cirrus.bin \
+
 # Overrides
-PRODUCT_NAME := full
-PRODUCT_DEVICE := generic
+PRODUCT_NAME := full_x86
+PRODUCT_DEVICE := generic_x86
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := AOSP on ARM Emulator
+PRODUCT_MODEL := AOSP on IA Emulator
