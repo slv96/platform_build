@@ -39,7 +39,7 @@ PRODUCT_PACKAGES += \
 # Device modules
 PRODUCT_PACKAGES += \
     egl.cfg \
-    gralloc.goldfish \
+    #gralloc.goldfish 
     libGLESv1_CM_emulation \
     lib_renderControl_enc \
     libEGL_emulation \
@@ -49,11 +49,11 @@ PRODUCT_PACKAGES += \
     libGLESv1_enc \
     qemu-props \
     qemud \
-    camera.goldfish \
-    camera.goldfish.jpeg \
-    lights.goldfish \
-    gps.goldfish \
-    sensors.goldfish
+    #camera.goldfish \
+    #camera.goldfish.jpeg \
+    #lights.goldfish \
+    #gps.goldfish \
+    #sensors.goldfish
 
 
 PRODUCT_COPY_FILES += \
