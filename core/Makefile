@@ -1,7 +1,6 @@
 # Put some miscellaneous rules here
 
 # Build system colors
-#NOME ZIP DA MAKE A LINEA 1391
 
 ifneq ($(BUILD_WITH_COLORS),0)
   CL_RED="\033[31m"
@@ -1424,7 +1423,6 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 	   --override_device=$(override_device) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
-#CM_TARGET_PACKAGE := $(PRODUCT_OUT)/cm-$(CM_VERSION).zip
 
 .PHONY: otapackage
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
