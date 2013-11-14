@@ -334,7 +334,7 @@ $(full_classes_compiled_jar): PRIVATE_JAVAC_DEBUG_FLAGS := -g
 # Run jarjar if necessary, otherwise just copy the file.
 ifneq ($(strip $(LOCAL_JARJAR_RULES)),)
 $(full_classes_jarjar_jar): PRIVATE_JARJAR_RULES := $(LOCAL_JARJAR_RULES)
-(full_classes_jarjar_jar): $(full_classes_compiled_jar) $(LOCAL_JARJAR_RULES) | $(JARJAR)
+$(full_classes_jarjar_jar): $(full_classes_compiled_jar) $(LOCAL_JARJAR_RULES) | $(JARJAR)
 	@echo -e ${CL_GRN}"JarJar:"${CL_RST}" $@"
 	$(hide) java -jar $(JARJAR) process $(PRIVATE_JARJAR_RULES) $< $@
 else
@@ -391,7 +391,6 @@ endif
 ifneq ($(LOCAL_INSTRUMENTATION_FOR)$(filter tests,$(LOCAL_MODULE_TAGS)),)
 proguard_flags += -include $(BUILD_SYSTEM)/proguard_tests.flags
 endif # test package
-
 ifeq ($(filter obfuscation,$(LOCAL_PROGUARD_ENABLED)),)
 # By default no obfuscation
 proguard_flags += -dontobfuscate
@@ -437,10 +436,11 @@ $(full_classes_proguard_jar) : $(full_classes_jar) $(proguard_flag_files) | $(AC
 
 else  # LOCAL_PROGUARD_ENABLED not defined
 $(full_classes_proguard_jar) : $(full_classes_jar)
-  @echo Copying: $@
-  $(hide) $(ACP) -fp $< $@
+	@echo Copying: $@
+	$(hide) $(ACP) -fp $< $@
 
 endif # LOCAL_PROGUARD_ENABLED defined
+
 
 # Override PRIVATE_INTERMEDIATES_DIR so that install-dex-debug
 # will work even when intermediates != intermediates.COMMON.

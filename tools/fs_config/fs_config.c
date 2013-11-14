@@ -40,8 +40,8 @@
 //
 // Example input:
 //
-//    system/etc/dbus.conf
-//    data/app/
+//      system/etc/dbus.conf
+//      data/app/
 //
 // Output:
 //
@@ -71,7 +71,7 @@ static void usage() {
   fprintf(stderr, "Usage: fs_config [-S context_file] [-C]\n");
 }
 
- int main(int argc, char** argv) {
+int main(int argc, char** argv) {
   char buffer[1024];
   const char* context_file = NULL;
   struct selabel_handle* sehnd = NULL;
@@ -124,7 +124,7 @@ static void usage() {
         fprintf(stderr, "non null terminated buffer, aborting\n");
         exit(EXIT_FAILURE);
       }
-      size_t full_name_size = buffer_strlen 2;
+      size_t full_name_size = buffer_strlen + 2;
       char* full_name = (char*) malloc(full_name_size);
       if (full_name == NULL) {
         perror("malloc");

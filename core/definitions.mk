@@ -1871,7 +1871,6 @@ define transform-jar-to-proguard
 $(hide) $(PROGUARD) -injars $< -outjars $@ $(PRIVATE_PROGUARD_FLAGS)
 endef
 
-
 ###########################################################
 ## Stuff source generated from one-off tools
 ###########################################################
@@ -1956,6 +1955,7 @@ endef
 ###########################################################
 ## Define device-specific radio files
 ###########################################################
+INSTALLED_RADIOIMAGE_TARGET :=
 
 # Copy a radio image file to the output location, and add it to
 # INSTALLED_RADIOIMAGE_TARGET.

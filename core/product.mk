@@ -65,6 +65,7 @@ endef
 #
 
 _product_var_list := \
+    PRODUCT_BOOTANIMATION \
     PRODUCT_BUILD_PROP_OVERRIDES \
     PRODUCT_NAME \
     PRODUCT_MODEL \
@@ -210,7 +211,7 @@ endef
 
 
 _product_stash_var_list := $(_product_var_list) \
-        PRODUCT_BOOTCLASSPATH \
+	PRODUCT_BOOTCLASSPATH \
 	TARGET_ARCH \
 	TARGET_ARCH_VARIANT \
 	TARGET_CPU_VARIANT \

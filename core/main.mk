@@ -298,8 +298,8 @@ user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
 enable_target_debugging := true
 tags_to_install :=
 ifneq (,$(user_variant))
-  # Target is insecure in user builds.
-  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+  # Target is secure in user builds.
+  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=1
 
   ifeq ($(user_variant),userdebug)
     # Pick up some extra useful tools
@@ -477,8 +477,8 @@ NOTICE-TARGET-%: ;
 # A helper goal printing out install paths
 .PHONY: GET-INSTALL-PATH
 GET-INSTALL-PATH:
-  @$(foreach m, $(ALL_MODULES), $(if $(ALL_MODULES.$(m).INSTALLED), \
-    echo 'INSTALL-PATH: $(m) $(ALL_MODULES.$(m).INSTALLED)';))
+	@$(foreach m, $(ALL_MODULES), $(if $(ALL_MODULES.$(m).INSTALLED), \
+		echo 'INSTALL-PATH: $(m) $(ALL_MODULES.$(m).INSTALLED)';))
 
 else # ONE_SHOT_MAKEFILE
 
@@ -822,7 +822,7 @@ ifneq ($(TARGET_BUILD_APPS),)
     $(call dist-for-goals,apps_only, $(EMMA_META_ZIP))
   endif
 
-$(PROGUARD_DICT_ZIP) : $(apps_only_installed_files)
+  $(PROGUARD_DICT_ZIP) : $(apps_only_installed_files)
   $(call dist-for-goals,apps_only, $(PROGUARD_DICT_ZIP))
 
 .PHONY: apps_only
@@ -838,6 +838,7 @@ $(eval $(call combine-notice-files, \
     $(TARGET_OUT_NOTICE_FILES), \
     $(apps_only_installed_files)))
 
+
 else # TARGET_BUILD_APPS
   $(call dist-for-goals, droidcore, \
     $(INTERNAL_UPDATE_PACKAGE_TARGET) \
@@ -851,6 +852,10 @@ else # TARGET_BUILD_APPS
     $(INSTALLED_FACTORY_RAMDISK_TARGET) \
     $(INSTALLED_FACTORY_BUNDLE_TARGET) \
    )
+
+  # Put a copy of the radio/bootloader files in the dist dir.
+  $(foreach f,$(INSTALLED_RADIOIMAGE_TARGET), \
+    $(call dist-for-goals, droidcore, $(f)))
 
   ifneq ($(TARGET_BUILD_PDK),true)
     $(call dist-for-goals, droidcore, \

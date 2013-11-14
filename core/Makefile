@@ -114,13 +114,23 @@ endif
 BUILD_VERSION_TAGS += $(BUILD_KEYS)
 BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
 
+# If the final fingerprint should be different than what was used by the build system,
+# we can allow that too.
+ifeq ($(TARGET_VENDOR_PRODUCT_NAME),)
+TARGET_VENDOR_PRODUCT_NAME := $(TARGET_PRODUCT)
+endif
+
+ifeq ($(TARGET_VENDOR_DEVICE_NAME),)
+TARGET_VENDOR_DEVICE_NAME := $(TARGET_DEVICE)
+endif
+
 # A human-readable string that descibes this build in detail.
-build_desc := $(TARGET_PRODUCT)-$(TARGET_BUILD_VARIANT) $(PLATFORM_VERSION) $(BUILD_ID) $(BUILD_NUMBER) $(BUILD_VERSION_TAGS)
+build_desc := $(TARGET_VENDOR_PRODUCT_NAME)-$(TARGET_BUILD_VARIANT) $(PLATFORM_VERSION) $(BUILD_ID) $(BUILD_NUMBER) $(BUILD_VERSION_TAGS)
 $(INSTALLED_BUILD_PROP_TARGET): PRIVATE_BUILD_DESC := $(build_desc)
 
 # The string used to uniquely identify this build;  used by the OTA server.
 ifeq (,$(strip $(BUILD_FINGERPRINT)))
-  BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
+  BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_VENDOR_PRODUCT_NAME)/$(TARGET_VENDOR_DEVICE_NAME):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
 endif
 ifneq ($(words $(BUILD_FINGERPRINT)),1)
   $(error BUILD_FINGERPRINT cannot contain spaces: "$(BUILD_FINGERPRINT)")
@@ -179,8 +189,9 @@ $(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE) $(
 	@echo Target buildinfo: $@
 	@mkdir -p $(dir $@)
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
-			TARGET_DEVICE="$(TARGET_DEVICE)" \
-			PRODUCT_NAME="$(TARGET_PRODUCT)" \
+			TARGET_DEVICE="$(TARGET_VENDOR_DEVICE_NAME)" \
+			CM_DEVICE="$(TARGET_DEVICE)" \
+			PRODUCT_NAME="$(TARGET_VENDOR_PRODUCT_NAME)" \
 			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
 			PRODUCT_DEFAULT_LANGUAGE="$(call default-locale-language,$(PRODUCT_LOCALES))" \
 			PRODUCT_DEFAULT_REGION="$(call default-locale-region,$(PRODUCT_LOCALES))" \
@@ -189,12 +200,6 @@ $(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE) $(
 			PRODUCT_MANUFACTURER="$(PRODUCT_MANUFACTURER)" \
 			PRIVATE_BUILD_DESC="$(PRIVATE_BUILD_DESC)" \
 			BUILD_ID="$(BUILD_ID)" \
-			BUILD_DISPLAY_ID="$(BUILD_DISPLAY_ID)" \
-			BUILD_NUMBER="$(BUILD_NUMBER)" \
-			PLATFORM_VERSION="$(PLATFORM_VERSION)" \
-			PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
-			PLATFORM_VERSION_CODENAME="$(PLATFORM_VERSION_CODENAME)" \
-			BUILD_VERSION_TAGS="$(BUILD_VERSION_TAGS)" \
 			TARGET_BOOTLOADER_BOARD_NAME="$(TARGET_BOOTLOADER_BOARD_NAME)" \
 			BUILD_FINGERPRINT="$(BUILD_FINGERPRINT)" \
 			TARGET_BOARD_PLATFORM="$(TARGET_BOARD_PLATFORM)" \
@@ -202,15 +207,21 @@ $(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE) $(
 			TARGET_CPU_ABI2="$(TARGET_CPU_ABI2)" \
 			TARGET_AAPT_CHARACTERISTICS="$(TARGET_AAPT_CHARACTERISTICS)" \
 			$(PRODUCT_BUILD_PROP_OVERRIDES) \
+			BUILD_DISPLAY_ID="$(BUILD_DISPLAY_ID)" \
+			BUILD_NUMBER="$(BUILD_NUMBER)" \
+			PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+			PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
+			PLATFORM_VERSION_CODENAME="$(PLATFORM_VERSION_CODENAME)" \
+			BUILD_VERSION_TAGS="$(BUILD_VERSION_TAGS)" \
 	        bash $(BUILDINFO_SH) > $@
-  $(hide) $(foreach file,$(system_prop_file), \
-     if [ -f "$(file)" ]; then \
-       echo "#" >> $@; \
-       echo Target buildinfo from: "$(file)"; \
-       echo "# from $(file)" >> $@; \
-       echo "#" >> $@; \
-       cat $(file) >> $@; \
-     fi;)
+	$(hide) $(foreach file,$(system_prop_file), \
+		if [ -f "$(file)" ]; then \
+			echo "#" >> $@; \
+			echo Target buildinfo from: "$(file)"; \
+			echo "# from $(file)" >> $@; \
+			echo "#" >> $@; \
+			cat $(file) >> $@; \
+		fi;)
 	$(if $(ADDITIONAL_BUILD_PROPERTIES), \
 		$(hide) echo >> $@; \
 		        echo "#" >> $@; \
@@ -402,8 +413,8 @@ $(INSTALLED_RAMDISK_TARGET): $(MKBOOTFS) $(INTERNAL_RAMDISK_FILES) | $(MINIGZIP)
 
 .PHONY: ramdisk-nodeps
 ramdisk-nodeps: $(MKBOOTFS) | $(MINIGZIP)
-  @echo "make $@: ignoring dependencies"
-  $(hide) $(MKBOOTFS) $(TARGET_ROOT_OUT) | $(MINIGZIP) > $(INSTALLED_RAMDISK_TARGET)
+	@echo "make $@: ignoring dependencies"
+	$(hide) $(MKBOOTFS) $(TARGET_ROOT_OUT) | $(MINIGZIP) > $(INSTALLED_RAMDISK_TARGET)
 
 ifneq ($(strip $(TARGET_NO_KERNEL)),true)
 
@@ -446,11 +457,6 @@ $(INSTALLED_BOOTIMAGE_TARGET): $(MKEXT2IMG) $(INTERNAL_BOOTIMAGE_FILES)
 	$(hide) $(MKEXT2BOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) --output $@
 	@echo -e ${CL_CYN}"Made boot image: $@"${CL_RST}
 
-.PHONY: bootimage-nodeps
-bootimage-nodeps: $(MKEXT2IMG)
-  @echo "make $@: ignoring dependencies"
-  $(hide) $(MKEXT2BOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) --output $(INSTALLED_BOOTIMAGE_TARGET)
-
 else ifndef BOARD_CUSTOM_BOOTIMG_MK # TARGET_BOOTIMAGE_USE_EXT2 != true
 
 $(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES)
@@ -458,12 +464,6 @@ $(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES)
 	$(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --output $@
 	$(hide) $(call assert-max-image-size,$@,$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
 	@echo -e ${CL_CYN}"Made boot image: $@"${CL_RST}
-
-.PHONY: bootimage-nodeps
-bootimage-nodeps: $(MKBOOTIMG)
-  @echo "make $@: ignoring dependencies"
-  $(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --output $(INSTALLED_BOOTIMAGE_TARGET)
-  $(hide) $(call assert-max-image-size,$(INSTALLED_BOOTIMAGE_TARGET),$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
 
 endif # ifndef BOARD_CUSTOM_BOOTIMG_MK
 
@@ -561,8 +561,7 @@ $(installed_notice_html_gz): $(target_notice_file_html_gz) | $(ACP)
 ifeq ($(ONE_SHOT_MAKEFILE),)
 ALL_DEFAULT_INSTALLED_MODULES += $(installed_notice_html_gz)
 endif
-
-endif # TARGET_BUILD_APPS
+endif  # TARGET_BUILD_APPS
 
 # The kernel isn't really a module, so to get its module file in there, we
 # make the target NOTICE files depend on this particular file too, which will
@@ -914,7 +913,11 @@ SYSTEMIMAGE_SOURCE_DIR := $(TARGET_OUT)
 ifneq ($(INSTALLED_RECOVERYIMAGE_TARGET),)
 intermediates := $(call intermediates-dir-for,PACKAGING,recovery_patch)
 ifndef BOARD_CUSTOM_BOOTIMG_MK
+ifeq ($(CM_BUILD),)
 RECOVERY_FROM_BOOT_PATCH := $(intermediates)/recovery_from_boot.p
+else
+RECOVERY_FROM_BOOT_PATCH :=
+endif
 else
 RECOVERY_FROM_BOOT_PATCH :=
 endif
@@ -999,11 +1002,9 @@ $(INSTALLED_PLATFORM_ZIP) : $(INTERNAL_SYSTEMIMAGE_FILES)
 ifeq (true,$(PLATFORM_ZIP_ADD_JAVA))
 	$(hide) cd $(OUT_DIR) && zip -qry $(patsubst $(OUT_DIR)/%,%,$@) $(PDK_PLATFORM_JAVA_ZIP_CONTENTS)
 endif
-
 ifneq ($(PDK_PLATFORM_ZIP_PRODUCT_BINARIES),)
-  $(hide) zip -qry $@ $(PDK_PLATFORM_ZIP_PRODUCT_BINARIES)
+	$(hide) zip -qry $@ $(PDK_PLATFORM_ZIP_PRODUCT_BINARIES)
 endif
-
 
 .PHONY: platform
 platform: $(INSTALLED_PLATFORM_ZIP)
@@ -1211,7 +1212,7 @@ OTATOOLS := $(DISTTOOLS) \
 otatools: $(OTATOOLS)
 
 
-UNPACKBOOTIMG :=  $(HOST_OUT_EXECUTABLES)/unpackbootimg
+UNPACKBOOTIMG :=  $(HOST_OUT_EXECUTABLES)/unpackbootimg$(HOST_EXECUTABLE_SUFFIX)
 
 .PHONY: unpackbootimg
 unpackbootimg: $(UNPACKBOOTIMG)
@@ -1272,7 +1273,7 @@ $(BUILT_TARGET_FILES_PACKAGE): \
 		$(INSTALLED_CACHEIMAGE_TARGET) \
 		$(INSTALLED_VENDORIMAGE_TARGET) \
 		$(INSTALLED_ANDROID_INFO_TXT_TARGET) \
-                $(SELINUX_FC) \
+		$(SELINUX_FC) \
 		$(built_ota_tools) \
 		$(APKCERTS_FILE) \
 		$(HOST_OUT_EXECUTABLES)/fs_config \
@@ -1371,15 +1372,15 @@ ifdef PRODUCT_EXTRA_RECOVERY_KEYS
 	$(hide) echo "extra_recovery_keys=$(PRODUCT_EXTRA_RECOVERY_KEYS)" >> $(zip_root)/META/misc_info.txt
 endif
 	$(hide) echo "mkbootimg_args=$(BOARD_MKBOOTIMG_ARGS)" >> $(zip_root)/META/misc_info.txt
-        $(hide) echo "use_set_metadata=1" >> $(zip_root)/META/misc_info.txt
+	$(hide) echo "use_set_metadata=1" >> $(zip_root)/META/misc_info.txt
 	$(call generate-userimage-prop-dictionary, $(zip_root)/META/misc_info.txt)
 	@# Zip everything up, preserving symlinks
 	$(hide) (cd $(zip_root) && zip -qry ../$(notdir $@) .)
 	@# Run fs_config on all the system, boot ramdisk, and recovery ramdisk files in the zip, and save the output
 	$(hide) zipinfo -1 $@ | awk 'BEGIN { FS="SYSTEM/" } /^SYSTEM\// {print "system/" $$2}' | $(HOST_OUT_EXECUTABLES)/fs_config -C -S $(SELINUX_FC) > $(zip_root)/META/filesystem_config.txt
-        $(hide) zipinfo -1 $@ | awk 'BEGIN { FS="BOOT/RAMDISK/" } /^BOOT\/RAMDISK\// {print $$2}' | $(HOST_OUT_EXECUTABLES)/fs_config -C -S $(SELINUX_FC) > $(zip_root)/META/boot_filesystem_config.txt
-        $(hide) zipinfo -1 $@ | awk 'BEGIN { FS="RECOVERY/RAMDISK/" } /^RECOVERY\/RAMDISK\// {print $$2}' | $(HOST_OUT_EXECUTABLES)/fs_config -C -S $(SELINUX_FC) > $(zip_root)/META/recovery_filesystem_config.txt
-        $(hide) (cd $(zip_root) && zip -q ../$(notdir $@) META/*filesystem_config.txt)
+	$(hide) zipinfo -1 $@ | awk 'BEGIN { FS="BOOT/RAMDISK/" } /^BOOT\/RAMDISK\// {print $$2}' | $(HOST_OUT_EXECUTABLES)/fs_config -C -S $(SELINUX_FC) > $(zip_root)/META/boot_filesystem_config.txt
+	$(hide) zipinfo -1 $@ | awk 'BEGIN { FS="RECOVERY/RAMDISK/" } /^RECOVERY\/RAMDISK\// {print $$2}' | $(HOST_OUT_EXECUTABLES)/fs_config -C -S $(SELINUX_FC) > $(zip_root)/META/recovery_filesystem_config.txt
+	$(hide) (cd $(zip_root) && zip -q ../$(notdir $@) META/*filesystem_config.txt)
 
 .PHONY: target-files-package
 target-files-package: $(BUILT_TARGET_FILES_PACKAGE)
@@ -1397,7 +1398,7 @@ name := $(TARGET_PRODUCT)
 ifeq ($(TARGET_BUILD_TYPE),debug)
   name := $(name)_debug
 endif
-name := AOSP-$(PLATFORM_VERSION)-$(shell date +%Y%m%d)-$(TARGET_DEVICE)-$(USER)
+name := $(name)-ota-$(FILE_NAME_TAG)
 
 INTERNAL_OTA_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
 
@@ -1409,6 +1410,16 @@ else
     OTA_FROM_TARGET_SCRIPT := $(TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT)
 endif
 
+ifeq ($(WITH_GMS),true)
+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+else
+ifneq ($(CM_BUILD),)
+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
+else
+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+endif
+endif
+
 ifeq ($(TARGET_OTA_ASSERT_DEVICE),)
     $(INTERNAL_OTA_PACKAGE_TARGET): override_device := auto
 else
@@ -1416,17 +1427,27 @@ else
 endif
 
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
+	@echo "$(OTA_FROM_TARGET_SCRIPT)" > $(PRODUCT_OUT)/ota_script_path
 	@echo -e ${CL_YLW}"Package OTA:"${CL_RST}" $@"
+	MKBOOTIMG=$(BOARD_CUSTOM_BOOTIMG_MK) \
 	$(OTA_FROM_TARGET_SCRIPT) -v \
 	   -p $(HOST_OUT) \
 	   -k $(KEY_CERT_PAIR) \
+	   --backup=$(backuptool) \
 	   --override_device=$(override_device) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
+CM_TARGET_PACKAGE := $(PRODUCT_OUT)/cm-$(CM_VERSION).zip
 
-.PHONY: otapackage
+.PHONY: otapackage bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
-
+bacon: otapackage
+ifneq ($(TARGET_CUSTOM_RELEASETOOL),)
+	$(error TARGET_CUSTOM_RELEASETOOL is deprecated)
+endif
+	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(CM_TARGET_PACKAGE)
+	$(hide) $(MD5SUM) $(CM_TARGET_PACKAGE) > $(CM_TARGET_PACKAGE).md5sum
+	@echo -e ${CL_CYN}"Package Complete: $(CM_TARGET_PACKAGE)"${CL_RST}
 
 # -----------------------------------------------------------------
 # The update package
@@ -1436,7 +1457,6 @@ ifeq ($(TARGET_BUILD_TYPE),debug)
   name := $(name)_debug
 endif
 name := $(name)-img-$(FILE_NAME_TAG)
-
 
 INTERNAL_UPDATE_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
 
@@ -1565,16 +1585,16 @@ ifdef TARGET_BUILD_APPS
 PROGUARD_DICT_ZIP := $(PRODUCT_OUT)/$(TARGET_PRODUCT)-proguard-dict-$(FILE_NAME_TAG).zip
 # the dependency will be set up later in build/core/main.mk.
 $(PROGUARD_DICT_ZIP) :
-  @echo "Packaging Proguard obfuscation dictionary files."
-  $(hide) dict_files=`find $(TARGET_OUT_COMMON_INTERMEDIATES)/APPS -name proguard_dictionary`; \
-    if [ -n "$$dict_files" ]; then \
-      zip -q $@ $$dict_files; \
-    else \
-      touch $(dir $@)/dummy; \
-      (cd $(dir $@) && zip -q $(notdir $@) dummy); \
-      zip -qd $@ dummy; \
-      rm $(dir $@)/dummy; \
-    fi
+	@echo "Packaging Proguard obfuscation dictionary files."
+	$(hide) dict_files=`find $(TARGET_OUT_COMMON_INTERMEDIATES)/APPS -name proguard_dictionary`; \
+		if [ -n "$$dict_files" ]; then \
+		  zip -q $@ $$dict_files; \
+		else \
+		  touch $(dir $@)/dummy; \
+		  (cd $(dir $@) && zip -q $(notdir $@) dummy); \
+		  zip -qd $@ dummy; \
+		  rm $(dir $@)/dummy; \
+		fi
 
 endif # TARGET_BUILD_APPS
 
@@ -1778,7 +1798,7 @@ $(INTERNAL_FINDBUGS_XML_TARGET): $(ALL_FINDBUGS_FILES)
 $(INTERNAL_FINDBUGS_HTML_TARGET): $(INTERNAL_FINDBUGS_XML_TARGET)
 	@echo ConvertXmlToText: $@
 	$(hide) prebuilt/common/findbugs/bin/convertXmlToText -html:fancy.xsl \
-	$(INTERNAL_FINDBUGS_XML_TARGET)	> $@
+	$(INTERNAL_FINDBUGS_XML_TARGET) > $@
 
 # -----------------------------------------------------------------
 # Findbugs

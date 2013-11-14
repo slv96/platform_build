@@ -23,6 +23,8 @@ comma := ,
 # only has an effect on python 2.6 and above.
 export PYTHONDONTWRITEBYTECODE := 1
 
+-include $(TOPDIR)vendor/extra/extra_config.mk
+
 # Standard source directories.
 SRC_DOCS:= $(TOPDIR)docs
 # TODO: Enforce some kind of layering; only add include paths
@@ -147,7 +149,7 @@ board_config_mk := \
 	$(strip $(wildcard \
 		$(SRC_TARGET_DIR)/board/$(TARGET_DEVICE)/BoardConfig.mk \
 		$(shell test -d device && find device -maxdepth 4 -path '*/$(TARGET_DEVICE)/BoardConfig.mk') \
-                $(shell test -d vendor && find vendor -maxdepth 4 -path '*/$(TARGET_DEVICE)/BoardConfig.mk') \
+		$(shell test -d vendor && find vendor -maxdepth 4 -path '*/$(TARGET_DEVICE)/BoardConfig.mk') \
 	))
 ifeq ($(board_config_mk),)
   $(error No config file found for TARGET_DEVICE $(TARGET_DEVICE))
@@ -180,6 +182,7 @@ ifneq ($(strip $(TARGET_NO_KERNEL)),true)
 else
   INSTALLED_KERNEL_TARGET :=
 endif
+
 
 # The build system exposes several variables for where to find the kernel
 # headers:
@@ -490,5 +493,11 @@ TARGET_PREBUILT_TAG := android-$(TARGET_ARCH)
 RS_PREBUILT_CLCORE := prebuilts/sdk/renderscript/lib/$(TARGET_ARCH)/libclcore.bc
 RS_PREBUILT_LIBPATH := -L prebuilts/ndk/8/platforms/android-9/arch-$(TARGET_ARCH)/usr/lib
 RS_PREBUILT_COMPILER_RT := prebuilts/sdk/renderscript/lib/$(TARGET_ARCH)/libcompiler_rt.a
+
+ifneq ($(CM_BUILD),)
+## We need to be sure the global selinux policies are included
+## last, to avoid accidental resetting by device configs
+$(eval include vendor/cm/sepolicy/sepolicy.mk)
+endif
 
 include $(BUILD_SYSTEM)/dumpvar.mk

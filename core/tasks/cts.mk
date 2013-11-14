@@ -31,7 +31,7 @@ VMTESTSTF_JAR := $(VMTESTSTF_INTERMEDIATES)/android.core.vm-tests-tf.jar
 CTS_CORE_CASE_LIST := \
 	android.core.tests.libcore.package.dalvik \
 	android.core.tests.libcore.package.com \
-        android.core.tests.libcore.package.conscrypt \
+	android.core.tests.libcore.package.conscrypt \
 	android.core.tests.libcore.package.sun \
 	android.core.tests.libcore.package.tests \
 	android.core.tests.libcore.package.org \
@@ -95,7 +95,7 @@ GEN_CLASSPATH := $(CORE_INTERMEDIATES)/classes.jar:$(CONSCRYPT_INTERMEDIATES)/cl
 CTS_CORE_XMLS := \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.dalvik.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.com.xml \
-        $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.conscrypt.xml \
+	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.conscrypt.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.sun.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.tests.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.org.xml \
@@ -115,43 +115,44 @@ $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.dalvik.xml: $(CTS_CORE_X
 		cts/tests/core/libcore/dalvik/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,dalvik,\
 		libcore/expectations)
+
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.com.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.com,\
 		cts/tests/core/libcore/com/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,com,\
 		libcore/expectations)
 
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.conscrypt.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
-  $(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.conscrypt,\
-    cts/tests/core/libcore/conscrypt/AndroidManifest.xml,\
-    $(CONSCRYPTTESTS_INTERMEDIATES)/javalib.jar,,\
-    libcore/expectations)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.conscrypt,\
+		cts/tests/core/libcore/conscrypt/AndroidManifest.xml,\
+		$(CONSCRYPTTESTS_INTERMEDIATES)/javalib.jar,,\
+		libcore/expectations)
 
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.sun.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.sun,\
 		cts/tests/core/libcore/sun/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,sun,\
 		libcore/expectations)
 
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.tests.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.tests,\
 		cts/tests/core/libcore/tests/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,tests,\
 		libcore/expectations)
 
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.org.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.org,\
 		cts/tests/core/libcore/org/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,org,\
 		libcore/expectations)
 
 $(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.libcore.xml: $(CTS_CORE_XMLS_DEPS)
-  $(hide) mkdir -p $(CTS_TESTCASES_OUT)
+	$(hide) mkdir -p $(CTS_TESTCASES_OUT)
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.libcore,\
 		cts/tests/core/libcore/libcore/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,libcore,\
@@ -184,7 +185,7 @@ $(DEFAULT_TEST_PLAN): $(cts_dir)/all_cts_files_stamp $(cts_tools_src_dir)/utils/
 	$(hide) $(ACP) -fp $(CTS_CORE_XMLS) $(CTS_TEST_XMLS) $(CORE_VM_TEST_TF_DESC) $(PRIVATE_DIR)/repository/testcases
 	$(hide) $(cts_tools_src_dir)/utils/buildCts.py cts/tests/tests/ $(PRIVATE_DIR) $(TMP_DIR) \
 		$(TOP) $(HOST_OUT_JAVA_LIBRARIES)/descGen.jar
-        $(hide) mkdir -p $(dir $@) && touch $@
+	$(hide) mkdir -p $(dir $@) && touch $@
 
 # Package CTS and clean up.
 #

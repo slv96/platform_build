@@ -257,6 +257,7 @@ current_product_makefile :=
 all_product_makefiles :=
 all_product_configs :=
 
+
 #############################################################################
 # TODO: Remove this hack once only 1 runtime is left.
 # Include the runtime product makefile based on the product's PRODUCT_RUNTIMES
@@ -362,6 +363,12 @@ endif
 # The optional :<owner> is used to indicate the owner of a vendor file.
 PRODUCT_COPY_FILES := \
     $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_COPY_FILES))
+_boot_animation := $(strip $(lastword $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_BOOTANIMATION)))
+ifneq ($(_boot_animation),)
+PRODUCT_COPY_FILES += \
+    $(_boot_animation):system/media/bootanimation.zip
+endif
+_boot_animation :=
 
 # A list of property assignments, like "key = value", with zero or more
 # whitespace characters on either side of the '='.

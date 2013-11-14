@@ -1,6 +1,7 @@
 <head>
 <?cs
   ####### If building devsite, add some meta data needed for when generating the top nav ######### ?>
+<?cs
   if:devsite ?><?cs
     if:guide||develop||training||reference||tools||sdk||google||samples
       ?><meta name="top_category" value="develop" /><?cs

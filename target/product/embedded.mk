@@ -76,6 +76,7 @@ PRODUCT_PACKAGES += \
     property_contexts \
     mac_permissions.xml
 
+
 PRODUCT_COPY_FILES += \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
     system/core/rootdir/init.trace.rc:root/init.trace.rc \

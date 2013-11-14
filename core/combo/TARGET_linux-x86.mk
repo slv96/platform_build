@@ -104,8 +104,8 @@ TARGET_GLOBAL_CFLAGS += \
 			-funswitch-loops \
 			-funwind-tables \
 			-fstack-protector \
-                        -include $(android_config_h) \
-                        -I $(dir $(android_config_h))
+			-include $(android_config_h) \
+			-I $(dir $(android_config_h))
 
 # XXX: Not sure this is still needed. Must check with our toolchains.
 TARGET_GLOBAL_CPPFLAGS += \

@@ -439,7 +439,6 @@ ifdef LOCAL_INSTRUMENTATION_FOR
 
   link_instr_intermediates_dir.COMMON := $(call intermediates-dir-for, \
       APPS,$(LOCAL_INSTRUMENTATION_FOR),,COMMON)
-
   # link against the jar with full original names (before proguard processing).
   link_instr_classes_jar := $(link_instr_intermediates_dir.COMMON)/classes.jar
   full_java_libs += $(link_instr_classes_jar)

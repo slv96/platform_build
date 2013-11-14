@@ -62,6 +62,7 @@ parser.add_argument('-a', '--abandon-first', action='store_true', help='before c
 parser.add_argument('-b', '--auto-branch', action='store_true', help='shortcut to "--start-branch auto --abandon-first --ignore-missing"')
 parser.add_argument('-q', '--quiet', action='store_true', help='print as little as possible')
 parser.add_argument('-v', '--verbose', action='store_true', help='print extra information to aid in debug')
+parser.add_argument('-f', '--force', action='store_true', help='force cherry pick even if commit has been merged')
 args = parser.parse_args()
 if args.start_branch == None and args.abandon_first:
     parser.error('if --abandon-first is set, you must also give the branch name with --start-branch')
@@ -156,7 +157,6 @@ if args.abandon_first:
             local_branches = re.split('\s*,\s*', matchObj.group(1))
             if any(args.start_branch[0] in s for s in local_branches):
                 needs_abandon = True
-                break
 
     if needs_abandon:
         # Perform the abandon only if the branch already exists
@@ -166,6 +166,18 @@ if args.abandon_first:
         execute_cmd(cmd)
         if not args.quiet:
             print('')
+
+# Get the list of projects that repo knows about
+#   - convert the project name to a project path
+project_name_to_path = {}
+plist = subprocess.Popen([repo_bin,"list"], stdout=subprocess.PIPE)
+project_path = None
+while(True):
+    pline = plist.stdout.readline().rstrip()
+    if not pline:
+        break
+    ppaths = re.split('\s*:\s*', pline.decode())
+    project_name_to_path[ppaths[1]] = ppaths[0]
 
 # Iterate through the requested change numbers
 for change in args.change_number:
@@ -206,6 +218,7 @@ for change in args.change_number:
     date_fluff       = '.000000000'
     project_name     = data['project']
     change_number    = data['_number']
+    status           = data['status']
     current_revision = data['revisions'][data['current_revision']]
     patch_number     = current_revision['_number']
     fetch_url        = current_revision['fetch']['http']['url']
@@ -218,29 +231,24 @@ for change in args.change_number:
     committer_date   = current_revision['commit']['committer']['date'].replace(date_fluff, '')
     subject          = current_revision['commit']['subject']
 
-    # Get the list of projects that repo knows about
-    #   - convert the project name to a project path
-    plist = subprocess.Popen([repo_bin,"list"], stdout=subprocess.PIPE)
-    while(True):
-        pline = plist.stdout.readline().rstrip()
-        if not pline:
-            break
-        ppaths = re.split('\s*:\s*', pline.decode())
-        if ppaths[1] == project_name:
-            project_path = ppaths[0]
-            break
-    if 'project_path' not in locals():
-        sys.stderr.write('ERROR: Could not determine the project path for project %s\n' % project_name)
-        sys.exit(1)
-
-    # Check that the project path exists
-    if not os.path.isdir(project_path):
-        if args.ignore_missing:
-            print('WARNING: Skipping %d since there is no project directory: %s\n' % (change_number, project_path))
-            continue;
+    # Check if commit has already been merged and exit if it has, unless -f is specified
+    if status == "MERGED":
+        if args.force:
+            print("!! Force-picking a merged commit !!\n")
         else:
-            sys.stderr.write('ERROR: For %d, there is no project directory: %s\n' % (change_number, project_path))
+            print("Commit already merged. Skipping the cherry pick.\nUse -f to force this pick.")
             sys.exit(1)
+
+    # Convert the project name to a project path
+    #   - check that the project path exists
+    if project_name in project_name_to_path:
+        project_path = project_name_to_path[project_name];
+    elif args.ignore_missing:
+        print('WARNING: Skipping %d since there is no project directory for: %s\n' % (change_number, project_name))
+        continue;
+    else:
+        sys.stderr.write('ERROR: For %d, could not determine the project path for project %s\n' % (change_number, project_name))
+        sys.exit(1)
 
     # If --start-branch is given, create the branch (more than once per path is okay; repo ignores gracefully)
     if args.start_branch:

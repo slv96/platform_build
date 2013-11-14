@@ -20,6 +20,7 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - cmgerrit: A Git wrapper that fetches/pushes patch from/to CM Gerrit Review.
 - cmrebase: Rebase a Gerrit change and push it again.
 - aospremote: Add git remote for matching AOSP repository.
+- cafremote: Add git remote for matching CodeAurora repository.
 - mka:      Builds using SCHED_BATCH on all processors.
 - mkap:     Builds the module(s) using mka and pushes them to the device.
 - cmka:     Cleans and builds using mka.
@@ -74,6 +75,7 @@ function check_product()
 
     if (echo -n $1 | grep -q -e "^cm_") ; then
        CM_BUILD=$(echo -n $1 | sed -e 's/^cm_//g')
+       export BUILD_NUMBER=$((date +%s%N ; echo $CM_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10)
     else
        CM_BUILD=
     fi
@@ -262,29 +264,19 @@ function settitle()
     fi
 }
 
-function addcompletions()
+function check_bash_version()
 {
     # Keep us from trying to run in something that isn't bash.
     if [ -z "${BASH_VERSION}" ]; then
-        return
+        return 1
     fi
 
     # Keep us from trying to run in bash that's too old.
     if [ "${BASH_VERSINFO[0]}" -lt 4 ] ; then
-        return
+        return 2
     fi
 
-    local T dir f
-
-    dirs="sdk/bash_completion vendor/cm/bash_completion"
-    for dir in $dirs; do
-    if [ -d ${dir} ]; then
-        for f in `/bin/ls ${dir}/[a-z]*.bash 2> /dev/null`; do
-            echo "including $f"
-            . $f
-        done
-    fi
-    done
+    return 0
 }
 
 function choosetype()
@@ -447,17 +439,6 @@ function choosecombo()
     printconfig
 }
 
-function qc()
-{
-    rm -Rf 'out/target/common/obj/JAVA_LIBRARIES/'${1}'_intermediates';
-    rm -Rf 'out/target/common/obj/APPS/'${1}'_intermediates';
-    rm -Rf 'out/target/jfltexx/obj/JAVA_LIBRARIES/'${1}'_intermediates';
-    rm -Rf 'out/target/jfltexx/obj/SHARED_LIBRARIES/'${1}'_intermediates';
-    rm -Rf 'out/target/jfltexx/obj/STATIC_LIBRARIES/'${1}'_intermediates';
-    rm -Rf 'out/target/jfltexx/obj/APPS/'${1}'_intermediates';
-    echo "QuickCleaner Done!"
-}
-
 # Clear this variable.  It will be built up again when the vendorsetup.sh
 # files are included at the end of this file.
 unset LUNCH_MENU_CHOICES
@@ -473,6 +454,11 @@ function add_lunch_combo()
     LUNCH_MENU_CHOICES=(${LUNCH_MENU_CHOICES[@]} $new_combo)
 }
 
+# add the default one here
+add_lunch_combo aosp_arm-eng
+add_lunch_combo aosp_x86-eng
+add_lunch_combo aosp_mips-eng
+add_lunch_combo vbox_x86-eng
 
 function print_lunch_menu()
 {
@@ -516,6 +502,36 @@ function brunch()
     return $?
 }
 
+function breakfast()
+{
+    target=$1
+    CM_DEVICES_ONLY="true"
+    unset LUNCH_MENU_CHOICES
+    add_lunch_combo full-eng
+    for f in `/bin/ls vendor/cm/vendorsetup.sh 2> /dev/null`
+        do
+            echo "including $f"
+            . $f
+        done
+    unset f
+
+    if [ $# -eq 0 ]; then
+        # No arguments, so let's have the full menu
+        lunch
+    else
+        echo "z$target" | grep -q "-"
+        if [ $? -eq 0 ]; then
+            # A buildtype was specified, assume a full device name
+            lunch $target
+        else
+            # This is probably just the CM model name
+            lunch cm_$target-userdebug
+        fi
+    fi
+    return $?
+}
+
+alias bib=breakfast
 
 function lunch()
 {
@@ -680,13 +696,20 @@ function eat()
         adb root
         sleep 1
         adb wait-for-device
+        # CWM command
         cat << EOF > /tmp/command
 --sideload
 EOF
-        if adb push /tmp/command /cache/recovery/ ; then
+        # TWRP command
+        cat << EOF > /tmp/openrecoveryscript
+sideload
+EOF
+        if adb push /tmp/command /cache/recovery/ && adb push /tmp/openrecoveryscript /cache/recovery/; then
             echo "Rebooting into recovery for sideload installation"
             adb reboot recovery
+            adb kill-server
             adb wait-for-sideload
+            echo "Device back online, trying to sideload"
             adb sideload $ZIPPATH
         fi
         rm /tmp/command
@@ -798,7 +821,7 @@ function mm()
               MODULES=all_modules
               ARGS=$@
             fi
-            ONE_SHOT_MAKEFILE=$M make -C $T -f build/core/main.mk $MODULES $ARGS
+            ONE_SHOT_MAKEFILE=$M $MM_MAKE -C $T -f build/core/main.mk $MODULES $ARGS
         fi
     fi
 }
@@ -834,6 +857,7 @@ function mmm()
                 MAKEFILE="$MAKEFILE $MFILE"
             else
                 case $DIR in
+                  mka) MMM_MAKE=mka;;
                   showcommands | snod | dist | incrementaljavac) ARGS="$ARGS $DIR";;
                   GET-INSTALL-PATH) GET_INSTALL_PATH=$DIR;;
                   *) echo "No Android.mk in $DIR."; return 1;;
@@ -945,18 +969,18 @@ function qpid() {
         append='$'
         shift
     elif [ "$1" = "--help" -o "$1" = "-h" ]; then
-    echo "usage: qpid [[--exact] <process name|pid>"
-    return 255
-  fi
+		echo "usage: qpid [[--exact] <process name|pid>"
+		return 255
+	fi
 
     local EXE="$1"
     if [ "$EXE" ] ; then
-    qpid | \grep "$prepend$EXE$append"
-  else
-    adb shell ps \
-      | tr -d '\r' \
-      | sed -e 1d -e 's/^[^ ]* *\([0-9]*\).* \([^ ]*\)$/\1 \2/'
-  fi
+		qpid | \grep "$prepend$EXE$append"
+	else
+		adb shell ps \
+			| tr -d '\r' \
+			| sed -e 1d -e 's/^[^ ]* *\([0-9]*\).* \([^ ]*\)$/\1 \2/'
+	fi
 }
 
 function pid()
@@ -977,7 +1001,7 @@ function pid()
         echo "$PID"
     else
         echo "usage: pid [--exact] <process name>"
-    return 255
+		return 255
     fi
 }
 
@@ -1488,6 +1512,24 @@ function aospremote()
 }
 export -f aospremote
 
+function cafremote()
+{
+    git remote rm caf 2> /dev/null
+    if [ ! -d .git ]
+    then
+        echo .git directory not found. Please run this from the root directory of the Android repository you wish to set up.
+    fi
+    PROJECT=`pwd | sed s#$ANDROID_BUILD_TOP/##g`
+    if (echo $PROJECT | grep -qv "^device")
+    then
+        PFX="platform/"
+    fi
+    git remote add caf git://codeaurora.org/$PFX$PROJECT
+    echo "Remote 'caf' created"
+}
+export -f cafremote
+
+
 function installboot()
 {
     if [ ! -e "$OUT/recovery/root/etc/recovery.fstab" ];
@@ -1514,6 +1556,7 @@ function installboot()
         fi
     fi
     adb start-server
+    adb wait-for-online
     adb root
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
@@ -1553,10 +1596,17 @@ function installrecovery()
     PARTITION=`grep "^\/recovery" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
     if [ -z "$PARTITION" ];
     then
-        echo "Unable to determine recovery partition."
-        return 1
+        # Try for RECOVERY_FSTAB_VERSION = 2
+        PARTITION=`grep "[[:space:]]\/recovery[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $1'}`
+        PARTITION_TYPE=`grep "[[:space:]]\/recovery[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
+        if [ -z "$PARTITION" ];
+        then
+            echo "Unable to determine recovery partition."
+            return 1
+        fi
     fi
     adb start-server
+    adb wait-for-online
     adb root
     sleep 1
     adb wait-for-online shell mount /system 2>&1 >> /dev/null
@@ -1943,8 +1993,17 @@ function dopush()
 
     if (adb shell cat /system/build.prop | grep -q "ro.cm.device=$CM_BUILD");
     then
+    # retrieve IP and PORT info if we're using a TCP connection
+    TCPIPPORT=$(adb devices | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+[^0-9]+' \
+        | head -1 | awk '{print $1}')
     adb root &> /dev/null
     sleep 0.3
+    if [ -n "$TCPIPPORT" ]
+    then
+        # adb root just killed our connection
+        # so reconnect...
+        adb connect "$TCPIPPORT"
+    fi
     adb wait-for-device &> /dev/null
     sleep 0.3
     adb remount &> /dev/null
@@ -2054,14 +2113,24 @@ if [ "x$SHELL" != "x/bin/bash" ]; then
 fi
 
 # Execute the contents of any vendorsetup.sh files we can find.
-for f in `test -d device && find device -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null` \
-         `test -d vendor && find vendor -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null`
+for f in `/bin/ls vendor/*/vendorsetup.sh vendor/*/*/vendorsetup.sh device/*/*/vendorsetup.sh 2> /dev/null`
 do
     echo "including $f"
     . $f
 done
 unset f
 
-addcompletions
+# Add completions
+check_bash_version && {
+    dirs="sdk/bash_completion vendor/cm/bash_completion"
+    for dir in $dirs; do
+    if [ -d ${dir} ]; then
+        for f in `/bin/ls ${dir}/[a-z]*.bash 2> /dev/null`; do
+            echo "including $f"
+            . $f
+        done
+    fi
+    done
+}
 
 export ANDROID_BUILD_TOP=$(gettop)
