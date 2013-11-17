@@ -37,7 +37,7 @@ PRODUCT_PACKAGES := \
 	libjni_pinyinime \
 	SoftKeyboard \
 	SystemUI \
-	Trebuchet \
+	Launcher2 \
 	Development \
 	DevelopmentSettings \
 	Fallback \
