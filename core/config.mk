@@ -495,6 +495,6 @@ RS_PREBUILT_LIBPATH := -L prebuilts/ndk/8/platforms/android-9/arch-$(TARGET_ARCH
 RS_PREBUILT_COMPILER_RT := prebuilts/sdk/renderscript/lib/$(TARGET_ARCH)/libcompiler_rt.a
 
 # SELinux
-include vendor/sepolicy/sepolicy.mk
+include build/vendor/sepolicy/sepolicy.mk
 
 include $(BUILD_SYSTEM)/dumpvar.mk
