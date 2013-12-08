@@ -92,12 +92,13 @@ class EdifyGenerator(object):
 
   def AssertDevice(self, device):
     """Assert that the device identifier is the given string."""
-
-    cmd = ('getprop("ro.product.device") == "%s" || '
-           'abort("This package is for \\"%s\\" devices; '
+    cmd = ('assert(' +
+           ' || \0'.join(['getprop("ro.product.device") == "%s" || getprop("ro.build.product") == "%s"'
+                         % (i, i) for i in device.split(",")]) +
+           ' || abort("This package is for \\"%s\\" devices; '
            'this is a \\"" + getprop("ro.product.device") + "\\".");'
-           ) % (device, device)
-    self.script.append(cmd)
+           ');') % device
+    self.script.append(self._WordWrap(cmd))
 
   def AssertSomeBootloader(self, *bootloaders):
     """Asert that the bootloader version is one of *bootloaders."""
@@ -107,15 +108,15 @@ class EdifyGenerator(object):
            ");")
     self.script.append(self._WordWrap(cmd))
 
-  #def RunBackup(self, command):
-    #self.script.append('package_extract_file("system/bin/backuptool.sh", "/tmp/backuptool.sh");')
-    #self.script.append('package_extract_file("system/bin/backuptool.functions", "/tmp/backuptool.functions");')
-    #self.script.append('set_perm(0, 0, 0777, "/tmp/backuptool.sh");')
-    #self.script.append('set_perm(0, 0, 0644, "/tmp/backuptool.functions");')
-    #self.script.append(('run_program("/tmp/backuptool.sh", "%s");' % command))
-    #if command == "restore":
-    #    self.script.append('delete("/system/bin/backuptool.sh");')
-    #    self.script.append('delete("/system/bin/backuptool.functions");')
+  def RunBackup(self, command):
+    self.script.append('package_extract_file("system/bin/backuptool.sh", "/tmp/backuptool.sh");')
+    self.script.append('package_extract_file("system/bin/backuptool.functions", "/tmp/backuptool.functions");')
+    self.script.append('set_perm(0, 0, 0777, "/tmp/backuptool.sh");')
+    self.script.append('set_perm(0, 0, 0644, "/tmp/backuptool.functions");')
+    self.script.append(('run_program("/tmp/backuptool.sh", "%s");' % command))
+    if command == "restore":
+        self.script.append('delete("/system/bin/backuptool.sh");')
+        self.script.append('delete("/system/bin/backuptool.functions");')
 
   def ShowProgress(self, frac, dur):
     """Update the progress bar, advancing it over 'frac' over the next
