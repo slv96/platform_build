@@ -1,5 +1,5 @@
-# Write here your pc's number of cores + number of threads
-NBR="12"
+# Usage : ./build.sh number-of-cores of your pc
+NBR="$1"
 
 # Do not edit!
 echo ""
@@ -27,7 +27,8 @@ echo "      #                                                               #"
 echo "       ############################################################### "
 echo ""
 echo ""
-. patches/patch.sh
+chmod 777 patch.sh 
+. patch.sh
 . build/envsetup.sh
 lunch full_janice-userdebug
 STARTTIME=$SECONDS
