@@ -74,7 +74,7 @@ FORCE:
 
 # These goals don't need to collect and include Android.mks/CleanSpec.mks
 # in the source tree.
-dont_bother_goals := clean clobber dataclean installclean almostclean \
+dont_bother_goals := clean clobber dataclean installclean almostclean littleclean \
     help out \
     snod systemimage-nodeps \
     stnod systemtarball-nodeps \
@@ -924,6 +924,11 @@ samplecode: $(sample_APKS_COLLECTION)
 
 .PHONY: findbugs
 findbugs: $(INTERNAL_FINDBUGS_HTML_TARGET) $(INTERNAL_FINDBUGS_XML_TARGET)
+
+.PHONY: littleclean
+littleclean:
+	@rm -rf $(OUT_DIR)/target/product/*
+	@echo -e ${CL_GRN}"Entire out/target/product directory removed."${CL_RST}
 
 .PHONY: almostclean
 almostclean:
