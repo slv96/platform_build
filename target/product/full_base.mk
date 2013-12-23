@@ -21,9 +21,8 @@
 
 PRODUCT_PACKAGES := \
     libfwdlockengine \
-    WAPPushManager
-
-include $(SRC_TARGET_DIR)/product/emulator.mk
+    WAPPushManager \
+    Launcher3
 
 # Additional settings used in all AOSP builds
 PRODUCT_PROPERTY_OVERRIDES := \
