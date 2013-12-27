@@ -26,8 +26,6 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/board/generic_x86/device.mk)
 
-include $(SRC_TARGET_DIR)/product/emulator.mk
-
 ifdef NET_ETH0_STARTONBOOT
   PRODUCT_PROPERTY_OVERRIDES += net.eth0.startonboot=1
 endif
