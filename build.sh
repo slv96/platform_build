@@ -31,14 +31,14 @@ chmod 777 patch.sh
 . patch.sh
 . build/envsetup.sh
 lunch full_janice-userdebug
-STARTTIME=$SECONDS
-make otapackage -j$NBR 
-ENDTIME=$SECONDS
+time1=$(date +%s.%N)
+make otapackage -j$NBR
+time2=$(date +%s.%N)
 echo "       ############################################################### "
 echo "      #                                                               #"
 echo "      #                                                               #"
 echo "      #                                                               #"
-echo -e "                        = Finished in $((ENDTIME-STARTTIME)) Seconds ="
+echo -e "                        = Finished in $(echo "($res2 - $res1) / 60"|bc ) minutes"
 echo "      #                                                               #"
 echo "      #                                                               #"
 echo "      #                                                               #"
