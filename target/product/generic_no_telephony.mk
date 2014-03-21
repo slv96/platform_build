@@ -33,7 +33,6 @@ PRODUCT_PACKAGES := \
     InputDevices \
     Keyguard \
     LatinIME \
-    Music \
     OneTimeInitializer \
     PrintSpooler \
     Provision \
@@ -45,6 +44,10 @@ PRODUCT_PACKAGES := \
     hostapd \
     wpa_supplicant.conf \
     WallpaperCropper
+
+ifneq ($(NO_MUSIC),true)
+PRODUCT_PACKAGES += Music 
+endif
 
 PRODUCT_PACKAGES += \
     audio \
